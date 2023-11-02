@@ -11,21 +11,24 @@ import bluetooth
 
 
 ########################################################################
+# Configure Service Info
+########################################################################
+service_uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
+service_name = "SampleServer"
+
+########################################################################
 # Open Advertise Service
 ########################################################################
 server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 server_sock.bind(("", bluetooth.PORT_ANY))
 server_sock.listen(1)
-
-port = server_sock.getsockname()[1]
-
-uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
+service_port = server_sock.getsockname()[1]
 
 bluetooth.advertise_service(
     server_sock,
-    "SampleServer",
-    service_id=uuid,
-    service_classes=[uuid, bluetooth.SERIAL_PORT_CLASS],
+    service_name,
+    service_id=service_uuid,
+    service_classes=[service_uuid, bluetooth.SERIAL_PORT_CLASS],
     profiles=[bluetooth.SERIAL_PORT_PROFILE],
     # protocols=[bluetooth.OBEX_UUID]
 )
@@ -34,10 +37,10 @@ bluetooth.advertise_service(
 ########################################################################
 # Wait for Connection
 ########################################################################
-print("Waiting for connection on RFCOMM channel", port)
+print(f"Waiting for connection on RFCOMM port {service_port}")
 
 client_sock, client_info = server_sock.accept()
-print("Accepted connection from", client_info)
+print(f"Accepted connection from {client_info}")
 
 
 ########################################################################
@@ -46,9 +49,9 @@ print("Accepted connection from", client_info)
 try:
     while True:
         data = client_sock.recv(1024)
-        if not data:
+        if not data or data == "exit":
             break
-        print("Received", data)
+        print(f"Received: {data}")
 except OSError:
     pass
 
