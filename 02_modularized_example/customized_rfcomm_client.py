@@ -72,7 +72,7 @@ class CustomizedBluetoothClient:
         while True:
             data: str = input()
             self.client_sock.send(data)
-            if not data or data == "exit":
+            if data == "" or data == "exit":
                 break
 
     def close(self):
