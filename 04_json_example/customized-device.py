@@ -19,7 +19,7 @@ class CustomizedMsgReceiver:
         self.service_name = service_name
 
         ########################################################################
-        # Socket
+        # Sockets
         ########################################################################
         self.accept_socket = None
         self.connection_socket = None
@@ -43,42 +43,60 @@ class CustomizedMsgReceiver:
         )
 
         ########################################################################
-        # Recv Socket: Created through Server Socket
+        # Connection Socket: Created through Server Socket
         ########################################################################
         print(f"+ Waiting for connection on RFCOMM port {service_port}...")
         self.connection_socket, client_info = self.accept_socket.accept()
         print(f"+ Connection is generated with {client_info}.")
 
-    def recv_loop(self):
+    def recv_message(self) -> str:
         ########################################################################
-        # Recv Socket: Receive Messages
+        # Connection Socket: Receive
         ########################################################################
+        received_message: bytes = self.connection_socket.recv(1024)
+        received_message_str: str = received_message.decode("UTF-8")
+
+        print("")
+        print(f"Received Message: {received_message_str}")
+        print(f"Size = {simple_size_calculator(received_message_str)} bytes")
+
+        return received_message_str
+
+    def send_message(self, sent_message: str):
+        ########################################################################
+        # Connection Socket: Send
+        ########################################################################
+        print("")
+        print(f"Sent Message: {sent_message}")
+        print(
+            f"Size = {simple_size_calculator(sent_message)} bytes (Cannot exceed about 1024 bytes)"
+        )
+
+        self.connection_socket.send(sent_message)
+
+    def device_loop(self):
         try:
             while True:
-                received_u_ticket_byte: bytes = self.connection_socket.recv(1024)
-                received_u_ticket_str: str = received_u_ticket_byte.decode("UTF-8")
-                print("")
-                print(f"Received U-Ticket: {received_u_ticket_str}")
-                print(
-                    f"Size of received_u_ticket_str = {simple_size_calculator(received_u_ticket_str)} bytes"
-                )
+                ########################################################################
+                # Connection Socket: Receive
+                ########################################################################
+                received_u_ticket_str: str = self.recv_message()
                 if received_u_ticket_str == "exit":
                     break
 
                 # TODO: Contoller, e.g., echo the message
                 generated_r_ticket_str: str = f"R|||{received_u_ticket_str}|||"
-                print("")
-                print(f"Sent R-Ticket: {generated_r_ticket_str}")
-                print(
-                    f"Size of generated_r_ticket_str = {simple_size_calculator(generated_r_ticket_str)} bytes (Cannot exceed about 1024 bytes)"
-                )
-                self.connection_socket.send(generated_r_ticket_str)
+
+                ########################################################################
+                # Connection Socket: Send
+                ########################################################################
+                self.send_message(generated_r_ticket_str)
         except OSError:
             print(f"+ Connection is closed by peer.")
 
     def close(self):
         ########################################################################
-        # Recv Socket: Closed
+        # Sockets: Closed
         ########################################################################
         self.connection_socket.close()
         self.accept_socket.close()
@@ -95,6 +113,6 @@ if __name__ == "__main__":
     )
     peer_address = msg_receiver.accept()
 
-    msg_receiver.recv_loop()
+    msg_receiver.device_loop()
 
     msg_receiver.close()

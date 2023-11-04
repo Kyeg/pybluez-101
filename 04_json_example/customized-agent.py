@@ -30,11 +30,6 @@ def input_next_message() -> str:
                 generated_u_ticket_str: str = generate_json_message(int(data_size))
             except ValueError:  # ERROR: data_size cannot be converted to int
                 continue
-
-        print(f"Sent U-Ticket: {generated_u_ticket_str}")
-        print(
-            f"Size of generated_u_ticket_str = {simple_size_calculator(generated_u_ticket_str)} bytes (Cannot exceed about 1024 bytes)"
-        )
         break
 
     return generated_u_ticket_str
@@ -106,45 +101,66 @@ class CustomizedMsgSender:
             host = first_match["host"]
 
         ########################################################################
-        # Sender Socket: Connect to Device/Service
+        # Connection Socket: Connect to Device/Service
         ########################################################################
         print(f"+ Connecting to {name} through port {port} on address {host}...")
         self.connection_socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
         self.connection_socket.connect((host, port))
         print(f"+ Connection is generated with {host}.")
 
-    def recv_loop(self):
+    def recv_message(self) -> str:
         ########################################################################
-        # Recv Socket: Receive Messages
+        # Connection Socket: Receive
         ########################################################################
+        received_message: bytes = self.connection_socket.recv(1024)
+        received_message_str: str = received_message.decode("UTF-8")
+
+        print("")
+        print(f"Received Message: {received_message_str}")
+        print(f"Size = {simple_size_calculator(received_message_str)} bytes")
+
+        return received_message_str
+
+    def send_message(self, sent_message: str):
+        ########################################################################
+        # Connection Socket: Send
+        ########################################################################
+        print("")
+        print(f"Sent Message: {sent_message}")
+        print(
+            f"Size = {simple_size_calculator(sent_message)} bytes (Cannot exceed about 1024 bytes)"
+        )
+
+        self.connection_socket.send(sent_message)
+
+    def agent_loop(self):
+        ########################################################################
+        # Connection Socket: Send
+        ########################################################################
+        next_message = input_next_message()
+        msg_sender.send_message(next_message)
         try:
             while True:
-                received_u_ticket_byte: bytes = self.connection_socket.recv(1024)
-                received_u_ticket_str: str = received_u_ticket_byte.decode("UTF-8")
-                print("")
-                print(f"Received R-Ticket: {received_u_ticket_str}")
-                print(
-                    f"Size of received_u_ticket_str = {simple_size_calculator(received_u_ticket_str)} bytes"
-                )
+                ########################################################################
+                # Connection Socket: Receive
+                ########################################################################
+                received_u_ticket_str: str = self.recv_message()
 
                 # TODO: Contoller, e.g., input next message
                 while True:
+                    ########################################################################
+                    # Connection Socket: Send
+                    ########################################################################
                     next_message = input_next_message()
                     if next_message != "":
-                        self.connection_socket.send(next_message)
+                        self.send_message(next_message)
                         break
         except OSError:
             print(f"Connection is closed by peer.")
 
-    def send_data(self, data: str):
-        ########################################################################
-        # Sender Socket: Send Messages
-        ########################################################################
-        self.connection_socket.send(data)
-
     def close(self):
         ########################################################################
-        # Sender Socket: Closed
+        # Socket: Closed
         ########################################################################
         self.connection_socket.close()
         print("Connection is closed.")
@@ -162,9 +178,6 @@ if __name__ == "__main__":
     )
     msg_sender.connect()
 
-    next_message = input_next_message()
-    msg_sender.send_data(next_message)
-
-    msg_sender.recv_loop()
+    msg_sender.agent_loop()
 
     msg_sender.close()
