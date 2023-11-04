@@ -1,1 +1,2 @@
 pybluez # ==0.22 in legacy systems
+pydantic
