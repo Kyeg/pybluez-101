@@ -1,6 +1,17 @@
+# Resource (Comm)
 import bluetooth_service as bt_service
 from bluetooth_service import ConnectingWorker, ConnectionSocket
 
+# Resource (Measurer)
+from measure_executor import (
+    measure_process_start,
+    measure_cli_process,
+    measure_comm_process,
+    measure_comm_start,
+    measure_comm_time,
+)
+
+# Data Model
 from u_ticket import generate_arbitrary_u_ticket
 
 
@@ -42,24 +53,36 @@ def agent_event_loop(connection_socket: ConnectionSocket):
     ########################################################################
     # Connection Socket: Send
     ########################################################################
+    # Start Process Measurement
+    measure_process_start()
     next_message = input_next_message()
     connection_socket.send_message(next_message)
+    # End Process Measurement
+    measure_cli_process("holder_apply_u_ticket")
     try:
         while True:
             ########################################################################
             # Connection Socket: Receive
             ########################################################################
+            # Start Comm Measurement
+            measure_comm_start()
             received_u_ticket_str: str = connection_socket.recv_message()
+            # End Comm Measurement
+            measure_comm_time("holder_recv_r_ticket", received_u_ticket_str)
 
             # TODO: Contoller, e.g., input next message
-            while True:
-                ########################################################################
-                # Connection Socket: Send
-                ########################################################################
-                next_message = input_next_message()
-                if next_message != "":
-                    connection_socket.send_message(next_message)
-                    break
+            # Start Process Measurement
+            measure_process_start()
+            ########################################################################
+            # Data Processing
+            ########################################################################
+            next_message = input_next_message()
+            ########################################################################
+            # Connection Socket: Send
+            ########################################################################
+            connection_socket.send_message(next_message)
+            # End Process Measurement
+            measure_comm_process("holder_recv_r_ticket")
     except OSError:
         print(f"Connection is closed by peer.")
 

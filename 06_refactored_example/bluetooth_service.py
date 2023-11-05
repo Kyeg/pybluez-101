@@ -11,16 +11,23 @@ SERVICE_NAME = "MyBluetoothService"
 ########################################################################
 # Reconnect if Discover Fails
 ########################################################################
-RECONNECT_TIMES = 3
-RECONNECT_INTERVAL = 3
+RECONNECT_TIMES = 3  # sec
+RECONNECT_INTERVAL = 3  # sec
 
 ########################################################################
 # Solve Bluetooth Buffer Size Constraint by Chunk-based Communication
 ########################################################################
-COMM_BUFFER_SIZE = 1024
-MSG_MAX_SIZE = 980
+COMM_BUFFER_SIZE = 1024  # byte
+MSG_MAX_SIZE = 980  # byte
+# COMM_BUFFER_SIZE = 128  # byte
+# MSG_MAX_SIZE = 80  # byte
+# COMM_BUFFER_SIZE = 64  # byte
+# MSG_MAX_SIZE = 20  # byte
 SPLIT_SIGN = "|||S|P|L|I|T|||"
-WAIT_NEXT_CHUNK = 0.01  # Too high decrease performance, too low may not received (multi-thread may help, but still)
+# Too high: decrease performance;
+# Too low: message may not received when doing other processing (multi-thread may help)
+WAIT_NEXT_CHUNK = 0.001  # sec
+# WAIT_NEXT_CHUNK = 0.05  # sec
 
 
 class ConnectionSocket:
@@ -60,14 +67,14 @@ class ConnectionSocket:
         for received_chunk_str in received_chunk_strs:
             original_message_str += received_chunk_str
         print("")
-        print(f"Received Message: {original_message_str}")
+        # print(f"Received Message: {original_message_str}")
 
         return original_message_str
 
     def send_message(self, original_message_str: str):
         # Combined Message
         print("")
-        print(f"Sent Message: {original_message_str}")
+        # print(f"Sent Message: {original_message_str}")
 
         # Divide message into Chunks
         message_length = self._message_size(original_message_str)
