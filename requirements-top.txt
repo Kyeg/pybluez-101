@@ -1,2 +1,2 @@
-pybluez # ==0.22 in legacy systems
+pybluez # Manually install ==0.30 in legacy systems
 pydantic
