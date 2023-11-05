@@ -1,3 +1,6 @@
+# Resource (Logger)
+from simple_logger import simple_log
+
 # Resource (Measurer)
 from simple_measurer import (
     start_process_timer,
@@ -21,9 +24,9 @@ def measure_cli_process(cli_name: str) -> float:
     process_time_xxx: float = get_process_time()
 
     # Print
-    print(f"+ Receive UI Input: {cli_name}")
-    print(f"process_time_xxx = {process_time_xxx:.4f} seconds")
-    print(f"")
+    simple_log("debug", f"+ Receive UI Input: {cli_name}")
+    simple_log("debug", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+    simple_log("debug", f"")
 
 
 def measure_comm_process(comm_name: str) -> float:
@@ -31,9 +34,9 @@ def measure_comm_process(comm_name: str) -> float:
     process_time_xxx: float = get_process_time()
 
     # Print
-    print(f"+ Receive Comm Input: {comm_name}")
-    print(f"process_time_xxx = {process_time_xxx:.4f} seconds")
-    print(f"")
+    simple_log("debug", f"+ Receive Comm Input: {comm_name}")
+    simple_log("debug", f"process_time_xxx = {process_time_xxx:.4f} seconds")
+    simple_log("debug", f"")
 
 
 ######################################################
@@ -52,8 +55,8 @@ def measure_comm_time(comm_name: str, received_message_json) -> float:
     comm_time_xxx: float = get_comm_time()
 
     # Print
-    print(f"+ Receive Comm Input: {comm_name}")
-    # print(f"+ Received Message: {received_message_json}")
-    print(f"message_size_xxx = {message_size_xxx} bytes")
-    print(f"comm_time_xxx = {comm_time_xxx:.4f} seconds")
-    print(f"")
+    simple_log("debug", f"+ Receive Comm Input: {comm_name}")
+    # simple_log("debug", f"+ Received Message: {received_message_json}")
+    simple_log("debug", f"message_size_xxx = {message_size_xxx} bytes")
+    simple_log("debug", f"comm_time_xxx = {comm_time_xxx:.4f} seconds")
+    simple_log("debug", f"")

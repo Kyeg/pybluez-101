@@ -2,6 +2,9 @@
 import bluetooth_service as bt_service
 from bluetooth_service import ConnectingWorker, ConnectionSocket
 
+# Resource (Logger)
+from simple_logger import simple_log
+
 # Resource (Measurer)
 from measure_executor import (
     measure_process_start,
@@ -20,9 +23,9 @@ from u_ticket import generate_arbitrary_u_ticket
 ######################################################
 def input_next_message() -> str:
     while True:
-        print("")
-        data_content: str = input("Set Data in U-Ticket: ")
-        data_size: str = input("Set Data Size (x N): ")
+        simple_log("demo", "")
+        data_content: str = input("[    DEMO] : Set Data in U-Ticket: ")
+        data_size: str = input("[    DEMO] : Set Data Size (x N): ")
 
         if data_content == "exit":
             generated_u_ticket_str: str = "exit"
@@ -84,7 +87,7 @@ def agent_event_loop(connection_socket: ConnectionSocket):
             # End Process Measurement
             measure_comm_process("holder_recv_r_ticket")
     except OSError:
-        print(f"Connection is closed by peer.")
+        simple_log("info", f"Connection is closed by peer.")
 
 
 if __name__ == "__main__":

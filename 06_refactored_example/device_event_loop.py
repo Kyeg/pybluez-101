@@ -2,6 +2,9 @@
 import bluetooth_service as bt_service
 from bluetooth_service import AcceptSocket, ConnectionSocket
 
+# Resource (Logger)
+from simple_logger import simple_log
+
 # Resource (Measurer)
 from measure_executor import (
     measure_process_start,
@@ -34,7 +37,7 @@ def device_event_loop(connection_socket: ConnectionSocket):
             ########################################################################
             connection_socket.send_message(generated_r_ticket_str)
     except OSError:
-        print(f"+ Connection is closed by peer.")
+        simple_log("debug", f"+ Connection is closed by peer.")
 
 
 if __name__ == "__main__":

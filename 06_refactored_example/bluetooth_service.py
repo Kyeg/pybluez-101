@@ -1,6 +1,11 @@
-import bluetooth
 import sys
+
+# Resource (Bluetooth)
+import bluetooth
 import time
+
+# Resource (Logger)
+from simple_logger import simple_log
 
 ########################################################################
 # Program-specific Service Info
@@ -51,14 +56,14 @@ class ConnectionSocket:
             # Receive
             chunk_with_length: bytes = self.connection_socket.recv(COMM_BUFFER_SIZE)
             chunk_with_length_str: str = self._byte_backto_str(chunk_with_length)
-            # print("")
-            # print(f"Received Chunk With Length: {chunk_with_length_str}")
+            # simple_log("info", "")
+            # simple_log("info", f"Received Chunk With Length: {chunk_with_length_str}")
 
             # Combined Chunks into Message
             message_length = chunk_with_length_str.split(SPLIT_SIGN)[0]
-            # print(f"Message Length: {message_length}")
+            # simple_log("info", f"Message Length: {message_length}")
             received_chunk_str = chunk_with_length_str.split(SPLIT_SIGN)[1]
-            # print(f"Received Chunk: {received_chunk_str}")
+            # simple_log("info", f"Received Chunk: {received_chunk_str}")
             received_chunk_strs.append(received_chunk_str)
             bytes_received = bytes_received + self._message_size(received_chunk_str)
 
@@ -66,19 +71,19 @@ class ConnectionSocket:
         original_message_str = ""
         for received_chunk_str in received_chunk_strs:
             original_message_str += received_chunk_str
-        print("")
-        # print(f"Received Message: {original_message_str}")
+        simple_log("debug", "")
+        # simple_log("debug", f"Received Message: {original_message_str}")
 
         return original_message_str
 
     def send_message(self, original_message_str: str):
         # Combined Message
-        print("")
-        # print(f"Sent Message: {original_message_str}")
+        simple_log("debug", "")
+        # simple_log("debug", f"Sent Message: {original_message_str}")
 
         # Divide message into Chunks
         message_length = self._message_size(original_message_str)
-        print(f"Message Length: {message_length}")
+        simple_log("debug", f"Message Length: {message_length}")
         sent_chunk_strs = []
         for i in range(0, len(original_message_str), MSG_MAX_SIZE):
             sent_chunk_str = original_message_str[i : i + MSG_MAX_SIZE]
@@ -86,8 +91,8 @@ class ConnectionSocket:
 
         for sent_chunk_str in sent_chunk_strs:
             message_with_length = f"{message_length}{SPLIT_SIGN}{sent_chunk_str}"
-            # print(f"Sent Chunk: {sent_chunk_str}")
-            # print(f"Sent Chunk With Length: {message_with_length}")
+            # simple_log("debug", f"Sent Chunk: {sent_chunk_str}")
+            # simple_log("debug", f"Sent Chunk With Length: {message_with_length}")
 
             # Send
             self.connection_socket.send(message_with_length)
@@ -98,7 +103,7 @@ class ConnectionSocket:
         # Connection Socket: Closed
         ########################################################################
         self.connection_socket.close()
-        print("Connection is closed.")
+        simple_log("info", "Connection is closed.")
 
 
 class ConnectingWorker:
@@ -124,12 +129,15 @@ class ConnectingWorker:
         ########################################################################
         addr = None
         if len(sys.argv) < 2:
-            print(
-                f"+ No device specified. Searching for {self.service_name} from all nearby bluetooth devices..."
+            simple_log(
+                "info",
+                f"+ No device specified. Searching for {self.service_name} from all nearby bluetooth devices...",
             )
         else:
             addr = sys.argv[1]
-            print(f"+ Searching for {self.service_name} on address {addr}...")
+            simple_log(
+                "info", f"+ Searching for {self.service_name} on address {addr}..."
+            )
 
         # Search for the service
         #   Discover devices or search specific address, & only matched uuid will be showed
@@ -140,8 +148,9 @@ class ConnectingWorker:
                 address=addr,
             )
             if len(service_matches) == 0:
-                print(
-                    f"+ Re-connecting {self.service_name} services : {reconnect_num} attempt"
+                simple_log(
+                    "info",
+                    f"+ Re-connecting {self.service_name} services : {reconnect_num} attempt",
                 )
                 time.sleep(self.reconnect_interval)
             else:
@@ -158,10 +167,12 @@ class ConnectingWorker:
         ########################################################################
         # Connection Socket: Connect to Device/Service
         ########################################################################
-        print(f"+ Connecting to {name} through port {port} on address {host}...")
+        simple_log(
+            "info", f"+ Connecting to {name} through port {port} on address {host}..."
+        )
         self.connection_socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
         self.connection_socket.connect((host, port))
-        print(f"+ Connection is generated with {host}.")
+        simple_log("info", f"+ Connection is generated with {host}.")
 
         return ConnectionSocket(self.connection_socket)
 
@@ -201,9 +212,9 @@ class AcceptSocket:
         ########################################################################
         # Connection Socket: Created through Server Socket
         ########################################################################
-        print(f"+ Waiting for connection on RFCOMM port {service_port}...")
+        simple_log("info", f"+ Waiting for connection on RFCOMM port {service_port}...")
         self.connection_socket, client_info = self.accept_socket.accept()
-        print(f"+ Connection is generated with {client_info}.")
+        simple_log("info", f"+ Connection is generated with {client_info}.")
 
         return ConnectionSocket(self.connection_socket)
 
@@ -212,4 +223,4 @@ class AcceptSocket:
         # Accept Socket: Closed
         ########################################################################
         self.accept_socket.close()
-        print("+ Stop accepting new connections.")
+        simple_log("info", "+ Stop accepting new connections.")
